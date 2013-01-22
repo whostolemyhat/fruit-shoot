@@ -23,5 +23,17 @@ $(document).ready(function() {
         var mousePos = getMousePos(canvas, evt);
         console.log("Mouse: " + mousePos.x + ', ' + mousePos.y);
     });
+
+    // falling fruit
+    var Fruit = function() {
+        this.x = 10;
+        this.y = 0;
+        
+        this.init = function() {
+
+        }
+    }
+
+    // fire on mouse click
     
 });
