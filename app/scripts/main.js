@@ -7,6 +7,12 @@ $(document).ready(function () {
     var canvas = $('#canvas')[0];
     var ctx = canvas.getContext('2d');
 
+    // game state - wave of enemies or boss
+    var state = 'wave';
+    var projectiles = [];
+    var enemies = [];
+    var powerups = [];
+
     function circle(x, y, radius, colour) {
         ctx.fillStyle = colour;
         ctx.beginPath();
@@ -27,11 +33,10 @@ $(document).ready(function () {
     function handleCollisions() {
         projectiles.forEach(function(projectile) {
             enemies.forEach(function(enemy) {
-                console.log(projectile.x, projectile.width);
                 if(collides(projectile, enemy)) {
-                    console.log('collision');
                     enemy.explode();
                     projectile.active = false;
+                    player.score += enemy.points;
                 }
             });
         });
@@ -50,6 +55,7 @@ $(document).ready(function () {
         colour: '#00A',
         width: 32,
         height: 32,
+        score: 0,
         draw: function() {
             ctx.fillStyle = this.colour;
             ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -70,13 +76,10 @@ $(document).ready(function () {
             };
         },
         explode: function() {
-            $('body').append('Game Over!');
+            $('body').append('Game Over! Score: ' + this.score);
             window.clearTimeout(play);
         }
     };
-
-    var projectiles = [];
-    var enemies = [];
 
     function Projectile(P) {
         P.active = true;
@@ -121,6 +124,8 @@ $(document).ready(function () {
         E.yVelocity = 0;
         E.width = 32;
         E.height = 32;
+        E.points = 1;
+        E.hp = 1;
 
         E.inBounds = function() {
             return E.x >= 0 && E.x <= CANVAS_WIDTH && E.y >= 0 && E.y <= CANVAS_HEIGHT;
@@ -149,21 +154,43 @@ $(document).ready(function () {
         return E;
     }
 
-    // function getPointerPos(canvas, evt) {
-    //     var rect = canvas.getBoundingClientRect();
-    //     return {
-    //         x: evt.clientX - rect.left,
-    //         y: evt.clientY - rect.top
-    //     }
-    // }
+    function Powerup(U) {
+        U = U || {};
 
-    // $(canvas).bind('click tap', function(evt) {
-    //     var pointerPos = getPointerPos(canvas, evt);
-    //     player.shoot();
-    //     evt.preventDefault();
-    // });
+        U.colour = '#aa2';
+        U.x = CANVAS_WIDTH;
+        U.y = CANVAS_HEIGHT * Math.random();
+        U.xVelocity = 4;
+        U.yVelocity = 0;
+        U.width = 24;
+        U.height = 24;
+        U.active = true;
 
-    
+        U.inBounds = function() {
+            return U.x >= 0 && U.x <= CANVAS_WIDTH && U.y >= 0 && U.y <= CANVAS_HEIGHT;
+        };
+
+        U.draw = function() {
+            ctx.fillStyle = U.colour;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.strokeStyle = '#ee2';
+            ctx.stroke();
+        };
+
+        U.update = function() {
+            U.x -= U.xVelocity;
+            U.y += U.yVelocity;
+
+            U.active = U.active && U.inBounds();
+        };
+
+        U.collect = function() {
+            this.active = false;
+        };
+
+        return U;
+    }
+
     function update() {
         if(keydown.space) {
             // prevent spamming
@@ -201,11 +228,30 @@ $(document).ready(function () {
         enemies = enemies.filter(function(enemy) {
             return enemy.active;
         });
-        if(Math.random() < 0.1) {
-            enemies.push(Enemy());
+
+        powerups.forEach(function(powerup) {
+            powerup.update();
+        });
+        powerups = powerups.filter(function(powerup) {
+            return powerup.active;
+        });
+
+        if(state == 'wave') {
+            if(Math.random() < 0.1) {
+                enemies.push(Enemy());
+            }
+            if(Math.random() < 0.01 && powerups.length === 0) {
+                powerups.push(Powerup());
+            }
+        } else if(state == 'boss') {
+            console.log('bossman');
         }
 
         handleCollisions();
+        updateScore();
+        if(player.score > 30) {
+            state = 'boss';
+        }
     }
 
     function draw() {
@@ -219,8 +265,16 @@ $(document).ready(function () {
         enemies.forEach(function(enemy) {
             enemy.draw();
         });
+
+        powerups.forEach(function(powerup) {
+            powerup.draw();
+        });
+        
     }
 
+    function updateScore() {
+        $('.score').text(player.score);
+    }
 
     // pattern from http://www.html5rocks.com/en/tutorials/canvas/notearsgame/
     var FPS = 30;

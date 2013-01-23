@@ -35,5 +35,18 @@ $(document).ready(function() {
     }
 
     // fire on mouse click
+    // function getPointerPos(canvas, evt) {
+    //     var rect = canvas.getBoundingClientRect();
+    //     return {
+    //         x: evt.clientX - rect.left,
+    //         y: evt.clientY - rect.top
+    //     }
+    // }
+
+    // $(canvas).bind('click tap', function(evt) {
+    //     var pointerPos = getPointerPos(canvas, evt);
+    //     player.shoot();
+    //     evt.preventDefault();
+    // });
     
 });
