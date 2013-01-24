@@ -47,6 +47,12 @@ $(document).ready(function () {
                 player.explode();
             }
         });
+        powerups.forEach(function(powerup) {
+            if(collides(powerup, player)) {
+                powerup.collect();
+                player.powerup(powerup.name);
+            }
+        });
     }
 
     var player = {
@@ -56,6 +62,8 @@ $(document).ready(function () {
         width: 32,
         height: 32,
         score: 0,
+        powerupActive: false,
+        powerupName: '',
         draw: function() {
             ctx.fillStyle = this.colour;
             ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -78,6 +86,11 @@ $(document).ready(function () {
         explode: function() {
             $('body').append('Game Over! Score: ' + this.score);
             window.clearTimeout(play);
+        },
+        powerup: function(powerup) {
+            this.powerupName = powerup;
+            this.powerupActive = true;
+            console.log(powerup);
         }
     };
 
@@ -97,7 +110,14 @@ $(document).ready(function () {
         };
 
         P.draw = function() {
-            circle(P.x, P.y, P.radius, P.colour);
+            // circle(P.x, P.y, P.radius, P.colour);
+            ctx.fillStyle = P.colour;
+            ctx.beginPath();
+            ctx.arc(P.x, P.y, P.radius, 0, Math.PI*2, false);
+            ctx.fill();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#2e2';
+            ctx.stroke();
         };
 
         P.update = function() {
@@ -157,7 +177,8 @@ $(document).ready(function () {
     function Powerup(U) {
         U = U || {};
 
-        U.colour = '#aa2';
+        U.name = U.name || 'shield';
+        U.colour = '#36d';
         U.x = CANVAS_WIDTH;
         U.y = CANVAS_HEIGHT * Math.random();
         U.xVelocity = 4;
@@ -173,7 +194,7 @@ $(document).ready(function () {
         U.draw = function() {
             ctx.fillStyle = U.colour;
             ctx.fillRect(this.x, this.y, this.width, this.height);
-            ctx.strokeStyle = '#ee2';
+            ctx.strokeStyle = '#47e';
             ctx.stroke();
         };
 
