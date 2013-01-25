@@ -12,7 +12,9 @@ $(document).ready(function () {
     var projectiles = [];
     var enemies = [];
     var powerups = [];
+    var count = 0;
 
+    // TODO
     function circle(x, y, radius, colour) {
         ctx.fillStyle = colour;
         ctx.beginPath();
@@ -48,17 +50,22 @@ $(document).ready(function () {
                 player.explode();
             }
 
-            if(collides(enemy, shield)) {
-                enemy.explode();
-                shield.decrease();
+            // TODO
+            if(shield.active) {
+                if(collides(enemy, shield)) {
+                    enemy.explode();
+                    shield.decrease();
+                }
             }
             
         });
 
+        // TODO
         powerups.forEach(function(powerup) {
             if(collides(powerup, player)) {
                 powerup.collect();
-                player.powerup(powerup.name);
+                // player.powerup(powerup.name);
+                shield.activate();
             }
         });
     }
@@ -85,6 +92,9 @@ $(document).ready(function () {
                 y: projectilePosition.y
             }));
         },
+        recharging: function() {
+            console.log('recharging!');
+        },
         midpoint: function() {
             return {
                 x: this.x + this.width / 2,
@@ -102,13 +112,14 @@ $(document).ready(function () {
     };
 
     var shield = {
-        active : true,
-        x : 0,
-        y : canvas.height / 2,
-        width: player.width * 2,
-        height : player.height * 2,
-        radius : player.width,
-        colour : '#47e',
+        active: false,
+        x: player.x,
+        y: player.y,
+        width: player.width + 10,
+        height: player.height * 2,
+        radius: player.width,
+        colour: '#47e',
+        hp: 4,
 
         draw : function() {
             ctx.beginPath();
@@ -123,8 +134,25 @@ $(document).ready(function () {
         },
 
         update: function() {
-            this.x = player.midpoint().x;
-            this.y = player.midpoint().y;
+            this.x = player.x;
+            this.y = player.y - (player.height / 2);
+        },
+        decrease: function() {
+            $('.shield .' + this.hp).remove();
+            this.hp--;
+            if(this.hp <= 0) {
+                this.explode();
+            }
+        },
+        explode: function() {
+            this.active = false;
+            this.hp = 4;
+        },
+        activate: function() {
+            this.active = true;
+            for(var i = 0; i < this.hp; i++) {
+                $('.shield').append('<span class="hp ' + (i + 1) + '"></span>');
+            }
         }
     };
 
@@ -169,8 +197,8 @@ $(document).ready(function () {
         E.y = CANVAS_HEIGHT / 4 + Math.random() * CANVAS_HEIGHT / 2;
         E.xVelocity = 2;
         E.yVelocity = 0;
-        E.width = 32;
-        E.height = 32;
+        E.width = 20;
+        E.height = 20;
         E.points = 1;
         E.hp = 1;
 
@@ -242,6 +270,8 @@ $(document).ready(function () {
             // prevent spamming
             if(projectiles.length < 6) {
                 player.shoot();
+            } else {
+                player.recharging();
             }
             // ignore if key held down
             keydown.space = false;
@@ -287,6 +317,7 @@ $(document).ready(function () {
         if(state == 'wave') {
             if(Math.random() < 0.1) {
                 enemies.push(Enemy());
+                count++;
             }
             if(Math.random() < 0.01 && powerups.length === 0) {
                 powerups.push(Powerup());
@@ -297,7 +328,7 @@ $(document).ready(function () {
 
         handleCollisions();
         updateScore();
-        if(player.score > 30) {
+        if(count > 100) {
             state = 'boss';
         }
     }
@@ -306,8 +337,9 @@ $(document).ready(function () {
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         player.draw();
 
-        shield.draw();
-        console.log(shield);
+        if(shield.active) {
+            shield.draw();
+        }
         
         projectiles.forEach(function(projectile) {
             projectile.draw();
