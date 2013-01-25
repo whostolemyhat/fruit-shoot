@@ -21,6 +21,7 @@ $(document).ready(function () {
         ctx.lineWidth = 1;
         ctx.strokeStyle = '#2e2';
         ctx.stroke();
+        ctx.closePath();
     }
 
     function collides(a, b) {
@@ -46,7 +47,14 @@ $(document).ready(function () {
                 enemy.explode();
                 player.explode();
             }
+
+            if(collides(enemy, shield)) {
+                enemy.explode();
+                shield.decrease();
+            }
+            
         });
+
         powerups.forEach(function(powerup) {
             if(collides(powerup, player)) {
                 powerup.collect();
@@ -90,7 +98,33 @@ $(document).ready(function () {
         powerup: function(powerup) {
             this.powerupName = powerup;
             this.powerupActive = true;
-            console.log(powerup);
+        }
+    };
+
+    var shield = {
+        active : true,
+        x : 0,
+        y : canvas.height / 2,
+        width: player.width * 2,
+        height : player.height * 2,
+        radius : player.width,
+        colour : '#47e',
+
+        draw : function() {
+            ctx.beginPath();
+            ctx.arc(player.midpoint().x, player.midpoint().y, this.radius, 0, Math.PI*2, false);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = this.colour;
+            ctx.stroke();
+
+            ctx.fillStyle = this.colour;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.closePath();
+        },
+
+        update: function() {
+            this.x = player.midpoint().x;
+            this.y = player.midpoint().y;
         }
     };
 
@@ -110,14 +144,7 @@ $(document).ready(function () {
         };
 
         P.draw = function() {
-            // circle(P.x, P.y, P.radius, P.colour);
-            ctx.fillStyle = P.colour;
-            ctx.beginPath();
-            ctx.arc(P.x, P.y, P.radius, 0, Math.PI*2, false);
-            ctx.fill();
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#2e2';
-            ctx.stroke();
+            circle(P.x, P.y, P.radius, P.colour);
         };
 
         P.update = function() {
@@ -194,8 +221,6 @@ $(document).ready(function () {
         U.draw = function() {
             ctx.fillStyle = U.colour;
             ctx.fillRect(this.x, this.y, this.width, this.height);
-            ctx.strokeStyle = '#47e';
-            ctx.stroke();
         };
 
         U.update = function() {
@@ -235,6 +260,8 @@ $(document).ready(function () {
         if(player.y >= CANVAS_HEIGHT - player.height) {
             player.y = CANVAS_HEIGHT - player.height;
         }
+
+        shield.update();
 
         projectiles.forEach(function(projectile) {
             projectile.update();
@@ -278,6 +305,9 @@ $(document).ready(function () {
     function draw() {
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         player.draw();
+
+        shield.draw();
+        console.log(shield);
         
         projectiles.forEach(function(projectile) {
             projectile.draw();
