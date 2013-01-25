@@ -10,6 +10,7 @@ $(document).ready(function () {
     // game state - wave of enemies or boss
     var state = 'wave';
     var projectiles = [];
+    var enemyProjectiles = [];
     var enemies = [];
     var powerups = [];
     var count = 0;
@@ -42,6 +43,27 @@ $(document).ready(function () {
                     player.score += enemy.points;
                 }
             });
+
+            if(boss.active) {
+                if(collides(projectile, boss)) {
+                    boss.hit();
+                    projectile.active = false;
+                }
+            }
+        });
+
+        enemyProjectiles.forEach(function(projectile) {
+            if(shield.active) {
+                if(collides(projectile, shield)) {
+                    projectile.active = false;
+                    shield.decrease();
+                }
+            }
+
+            if(collides(projectile, player)) {
+                player.hit();
+                projectile.active = false;
+            }
         });
 
         enemies.forEach(function(enemy) {
@@ -64,7 +86,6 @@ $(document).ready(function () {
         powerups.forEach(function(powerup) {
             if(collides(powerup, player)) {
                 powerup.collect();
-                // player.powerup(powerup.name);
                 shield.activate();
             }
         });
@@ -77,8 +98,9 @@ $(document).ready(function () {
         width: 32,
         height: 32,
         score: 0,
-        powerupActive: false,
-        powerupName: '',
+        hp: 3,
+        // powerupActive: false,
+        // powerupName: '',
         draw: function() {
             ctx.fillStyle = this.colour;
             ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -103,11 +125,19 @@ $(document).ready(function () {
         },
         explode: function() {
             $('body').append('Game Over! Score: ' + this.score);
-            window.clearTimeout(play);
+            end();
         },
         powerup: function(powerup) {
             this.powerupName = powerup;
             this.powerupActive = true;
+        },
+        hit: function() {
+            console.log('ow!');
+            this.hp--;
+            if(this.hp <= 0) {
+                $('body').append('You lose!');
+                end();
+            }
         }
     };
 
@@ -119,7 +149,7 @@ $(document).ready(function () {
         height: player.height * 2,
         radius: player.width,
         colour: '#47e',
-        hp: 4,
+        hp: 0,
 
         draw : function() {
             ctx.beginPath();
@@ -127,9 +157,6 @@ $(document).ready(function () {
             ctx.lineWidth = 3;
             ctx.strokeStyle = this.colour;
             ctx.stroke();
-
-            ctx.fillStyle = this.colour;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
             ctx.closePath();
         },
 
@@ -140,16 +167,19 @@ $(document).ready(function () {
         decrease: function() {
             $('.shield .' + this.hp).remove();
             this.hp--;
+            player.score--;
             if(this.hp <= 0) {
                 this.explode();
             }
         },
         explode: function() {
             this.active = false;
-            this.hp = 4;
+            this.hp = 2;
         },
         activate: function() {
+            this.hp += 2;
             this.active = true;
+            $('.hp').remove();
             for(var i = 0; i < this.hp; i++) {
                 $('.shield').append('<span class="hp ' + (i + 1) + '"></span>');
             }
@@ -160,8 +190,8 @@ $(document).ready(function () {
         P.active = true;
         P.xVelocity = P.speed;
         P.yVelocity = 0;
-        P.radius = 5;
-        P.colour = '#afa';
+        P.radius = P.radius || 5;
+        P.colour = P.colour || '#afa';
         // need for collision detection
         P.width = P.radius;
         P.height = P.radius;
@@ -229,6 +259,59 @@ $(document).ready(function () {
         return E;
     }
 
+    var boss = {
+        colour: '#e33',
+        height: CANVAS_HEIGHT * 0.8,
+        width: 100,
+        x: CANVAS_WIDTH,
+        y: 40,
+        active: false,
+        hp: 20,
+        xVelocity: 2,
+
+        draw: function() {
+            ctx.fillStyle = this.colour;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        },
+
+        update: function() {
+            if(this.x > 500) {
+                this.x -= this.xVelocity;
+            }
+            if(Math.random() < 0.3) {
+                this.shoot();
+            }
+        },
+        hit: function() {
+            this.hp--;
+            console.log(this.hp);
+            if(this.hp <= 0) {
+                this.explode();
+            }
+        },
+        explode: function() {
+            this.active = false;
+            $('body').append('You win!');
+        },
+        shoot: function() {
+            var projectilePosition = this.enemyProjectilePosition();
+
+            enemyProjectiles.push(Projectile({
+                speed: -12,
+                radius: 4,
+                x: projectilePosition.x,
+                y: projectilePosition.y,
+                colour: '#d90a1a'
+            }));
+        },
+        enemyProjectilePosition: function() {
+            return {
+                x: this.x + this.width / 2,
+                y: (Math.random() * this.height) + this.y
+            };
+        }
+    }
+
     function Powerup(U) {
         U = U || {};
 
@@ -268,7 +351,7 @@ $(document).ready(function () {
     function update() {
         if(keydown.space) {
             // prevent spamming
-            if(projectiles.length < 6) {
+            if(projectiles.length < 7) {
                 player.shoot();
             } else {
                 player.recharging();
@@ -300,6 +383,13 @@ $(document).ready(function () {
             return projectile.active;
         });
 
+        enemyProjectiles.forEach(function(projectile) {
+            projectile.update();
+        });
+        enemyProjectiles = enemyProjectiles.filter(function(projectile) {
+            return projectile.active;
+        });
+
         enemies.forEach(function(enemy) {
             enemy.update();
         });
@@ -323,13 +413,14 @@ $(document).ready(function () {
                 powerups.push(Powerup());
             }
         } else if(state == 'boss') {
-            console.log('bossman');
+            boss.update();
         }
 
         handleCollisions();
         updateScore();
-        if(count > 100) {
+        if(count > 10) {
             state = 'boss';
+            boss.active = true;
         }
     }
 
@@ -352,11 +443,21 @@ $(document).ready(function () {
         powerups.forEach(function(powerup) {
             powerup.draw();
         });
+
+        boss.draw();
+
+        enemyProjectiles.forEach(function(projectile) {
+            projectile.draw();
+        });
         
     }
 
     function updateScore() {
         $('.score').text(player.score);
+    }
+
+    function end() {
+        window.clearTimeout(play);
     }
 
     // pattern from http://www.html5rocks.com/en/tutorials/canvas/notearsgame/
