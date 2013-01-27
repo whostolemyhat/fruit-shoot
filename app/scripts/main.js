@@ -14,6 +14,7 @@ $(document).ready(function () {
     var enemies = [];
     var powerups = [];
     var count = 0;
+    var sound = true;
 
     // TODO
     function circle(x, y, radius, colour) {
@@ -69,7 +70,7 @@ $(document).ready(function () {
         enemies.forEach(function(enemy) {
             if(collides(enemy, player)) {
                 enemy.explode();
-                player.explode();
+                player.hit();
             }
 
             // TODO
@@ -94,13 +95,12 @@ $(document).ready(function () {
     var player = {
         x: 0,
         y: (canvas.height / 2),
-        colour: '#00A',
+        colour: '#eee',
         width: 32,
         height: 32,
         score: 0,
         hp: 3,
-        // powerupActive: false,
-        // powerupName: '',
+
         draw: function() {
             ctx.fillStyle = this.colour;
             ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -113,6 +113,9 @@ $(document).ready(function () {
                 x: projectilePosition.x,
                 y: projectilePosition.y
             }));
+            if(sound) {
+                Sound.play('laser');
+            }
         },
         recharging: function() {
             console.log('recharging!');
@@ -124,6 +127,9 @@ $(document).ready(function () {
             };
         },
         explode: function() {
+            if(sound) {
+                Sound.play('explosion');
+            }
             $('body').append('Game Over! Score: ' + this.score);
             end();
         },
@@ -132,14 +138,28 @@ $(document).ready(function () {
             this.powerupActive = true;
         },
         hit: function() {
-            console.log('ow!');
+            if(sound) {
+                Sound.play('hit');
+            }
             this.hp--;
+            this.drawHealth();
             if(this.hp <= 0) {
                 $('body').append('You lose!');
+                if(sound) {
+                    Sound.play('explosion');
+                }
                 end();
+            }
+        },
+        drawHealth: function() {
+            $('.health .hp').remove();
+            for(var i = 0; i < this.hp; i++) {
+                $('.health').append('<span class="hp ' + (i + 1) + '"></span>');
             }
         }
     };
+    // TODO
+    player.drawHealth();
 
     var shield = {
         active: false,
@@ -178,8 +198,11 @@ $(document).ready(function () {
         },
         activate: function() {
             this.hp += 2;
+            if(sound) {
+                Sound.play('powerup');
+            }
             this.active = true;
-            $('.hp').remove();
+            $('.shield .hp').remove();
             for(var i = 0; i < this.hp; i++) {
                 $('.shield').append('<span class="hp ' + (i + 1) + '"></span>');
             }
@@ -225,7 +248,7 @@ $(document).ready(function () {
 
         E.x = CANVAS_WIDTH;
         E.y = CANVAS_HEIGHT / 4 + Math.random() * CANVAS_HEIGHT / 2;
-        E.xVelocity = 2;
+        E.xVelocity = 3;
         E.yVelocity = 0;
         E.width = 20;
         E.height = 20;
@@ -261,13 +284,21 @@ $(document).ready(function () {
 
     var boss = {
         colour: '#e33',
-        height: CANVAS_HEIGHT * 0.8,
+        height: CANVAS_HEIGHT * 0.6,
         width: 100,
         x: CANVAS_WIDTH,
-        y: 40,
+        y: CANVAS_HEIGHT * 0.2,
         active: false,
-        hp: 20,
+        hp: 25,
         xVelocity: 2,
+
+        init: function() {
+            boss.active = true;
+            if(sound) {
+                Sound.play('boss');
+            }
+            this.draw();
+        },
 
         draw: function() {
             ctx.fillStyle = this.colour;
@@ -277,37 +308,45 @@ $(document).ready(function () {
         update: function() {
             if(this.x > 500) {
                 this.x -= this.xVelocity;
-            }
-            if(Math.random() < 0.3) {
-                this.shoot();
+            } else {
+                if(Math.random() < 0.55) {
+                    this.shoot();
+                }
             }
         },
         hit: function() {
             this.hp--;
-            console.log(this.hp);
             if(this.hp <= 0) {
                 this.explode();
             }
         },
         explode: function() {
             this.active = false;
+            if(sound) {
+                Sound.play('explosion');
+            }
             $('body').append('You win!');
+            end();
         },
         shoot: function() {
             var projectilePosition = this.enemyProjectilePosition();
 
             enemyProjectiles.push(Projectile({
-                speed: -12,
+                speed: -((Math.random() * 5) + 9),
                 radius: 4,
                 x: projectilePosition.x,
                 y: projectilePosition.y,
                 colour: '#d90a1a'
             }));
+            if(sound) {
+                Sound.play('enemylaser');
+            }
         },
         enemyProjectilePosition: function() {
             return {
                 x: this.x + this.width / 2,
-                y: (Math.random() * this.height) + this.y
+                // y: (Math.random() * this.height) + this.y
+                y: Math.random() * CANVAS_HEIGHT
             };
         }
     }
@@ -418,9 +457,12 @@ $(document).ready(function () {
 
         handleCollisions();
         updateScore();
-        if(count > 10) {
-            state = 'boss';
-            boss.active = true;
+
+        if(state !== 'boss') {
+            if(count > 10) {
+                state = 'boss';
+                boss.init();
+            }
         }
     }
 
@@ -444,7 +486,9 @@ $(document).ready(function () {
             powerup.draw();
         });
 
-        boss.draw();
+        if(boss.active) {
+            boss.draw();
+        }
 
         enemyProjectiles.forEach(function(projectile) {
             projectile.draw();

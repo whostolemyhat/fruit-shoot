@@ -1,1 +1,21 @@
 @import "_debug";
+
+.hp {
+    display: inline-block;
+    width: 30px;
+    height: 10px;
+    margin: 0 5px 0 0;
+}
+.shield .hp {
+    background: #47e;
+}
+.health .hp {
+    background: #e22;
+}
+
+.health, .shield {
+    display: inline-block;
+}
+canvas {
+    background: #1a3450;
+}
