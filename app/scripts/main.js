@@ -100,10 +100,12 @@ $(document).ready(function () {
         height: 32,
         score: 0,
         hp: 3,
+        sprite: Sprite('ship'),
 
         draw: function() {
-            ctx.fillStyle = this.colour;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            // ctx.fillStyle = this.colour;
+            // ctx.fillRect(this.x, this.y, this.width, this.height);
+            this.sprite.draw(ctx, this.x, this.y);
         },
         shoot: function() {
             var projectilePosition = this.midpoint();
@@ -165,19 +167,25 @@ $(document).ready(function () {
         active: false,
         x: player.x,
         y: player.y,
-        width: player.width + 10,
+        width: player.width,
         height: player.height * 2,
-        radius: player.width,
+        radius: player.width - 10,
         colour: '#47e',
         hp: 0,
 
         draw : function() {
+            ctx.save();
+            // ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.scale(2, 1);
+
             ctx.beginPath();
-            ctx.arc(player.midpoint().x, player.midpoint().y, this.radius, 0, Math.PI*2, false);
+            ctx.arc(player.midpoint().x - 5, player.midpoint().y, this.radius, 0, Math.PI*2, false);
             ctx.lineWidth = 3;
             ctx.strokeStyle = this.colour;
             ctx.stroke();
             ctx.closePath();
+
+            ctx.restore();
         },
 
         update: function() {
@@ -248,20 +256,22 @@ $(document).ready(function () {
 
         E.x = CANVAS_WIDTH;
         E.y = CANVAS_HEIGHT / 4 + Math.random() * CANVAS_HEIGHT / 2;
-        E.xVelocity = 3;
+        E.xVelocity = 2;
         E.yVelocity = 0;
         E.width = 20;
         E.height = 20;
         E.points = 1;
         E.hp = 1;
+        E.sprite = Sprite('alien-small');
 
         E.inBounds = function() {
             return E.x >= 0 && E.x <= CANVAS_WIDTH && E.y >= 0 && E.y <= CANVAS_HEIGHT;
         };
 
         E.draw = function() {
-            ctx.fillStyle = E.colour;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            // ctx.fillStyle = E.colour;
+            // ctx.fillRect(this.x, this.y, this.width, this.height);
+            this.sprite.draw(ctx, this.x, this.y);
         };
 
         E.update = function() {
@@ -289,7 +299,7 @@ $(document).ready(function () {
         x: CANVAS_WIDTH,
         y: CANVAS_HEIGHT * 0.2,
         active: false,
-        hp: 25,
+        hp: 20,
         xVelocity: 2,
 
         init: function() {
@@ -363,14 +373,16 @@ $(document).ready(function () {
         U.width = 24;
         U.height = 24;
         U.active = true;
+        U.sprite = Sprite('shield');
 
         U.inBounds = function() {
             return U.x >= 0 && U.x <= CANVAS_WIDTH && U.y >= 0 && U.y <= CANVAS_HEIGHT;
         };
 
         U.draw = function() {
-            ctx.fillStyle = U.colour;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            // ctx.fillStyle = U.colour;
+            // ctx.fillRect(this.x, this.y, this.width, this.height);
+            this.sprite.draw(ctx, this.x, this.y);
         };
 
         U.update = function() {
