@@ -16,6 +16,17 @@ $(document).ready(function () {
     var count = 0;
     var sound = true;
 
+    // toggle sound
+    $('#sound').click(function(e) {
+        e.preventDefault();
+        sound = !sound;
+        if(!sound) {
+            $('#sound').text('Sound: Off');
+        } else {
+            $('#sound').text('Sound: On');
+        }
+    });
+
     // TODO
     function circle(x, y, radius, colour) {
         ctx.fillStyle = colour;
@@ -260,7 +271,7 @@ $(document).ready(function () {
         E.yVelocity = 0;
         E.width = 20;
         E.height = 20;
-        E.points = 1;
+        E.points = 10;
         E.hp = 1;
         E.sprite = Sprite('alien-small');
 
@@ -287,6 +298,11 @@ $(document).ready(function () {
 
         E.explode = function() {
             this.active = false;
+            // var text = "+10";
+            // ctx.fillStyle = E.colour;
+            // ctx.fillText(text, E.x, E.y);
+            // console.log(text);
+            // end();
         }
 
         return E;
@@ -294,13 +310,14 @@ $(document).ready(function () {
 
     var boss = {
         colour: '#e33',
-        height: CANVAS_HEIGHT * 0.6,
-        width: 100,
+        height: 370,
+        width: 140,
         x: CANVAS_WIDTH,
-        y: CANVAS_HEIGHT * 0.2,
+        y: CANVAS_HEIGHT * 0.1,
         active: false,
         hp: 20,
         xVelocity: 2,
+        sprite: Sprite('boss'),
 
         init: function() {
             boss.active = true;
@@ -311,12 +328,13 @@ $(document).ready(function () {
         },
 
         draw: function() {
-            ctx.fillStyle = this.colour;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            // ctx.fillStyle = this.colour;
+            // ctx.fillRect(this.x, this.y, this.width, this.height);
+            this.sprite.draw(ctx, this.x, this.y);
         },
 
         update: function() {
-            if(this.x > 500) {
+            if(this.x > 460) {
                 this.x -= this.xVelocity;
             } else {
                 if(Math.random() < 0.55) {
