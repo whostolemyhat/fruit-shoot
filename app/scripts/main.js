@@ -15,7 +15,10 @@ $(document).ready(function () {
     var powerups = [];
     var count = 0;
     var sound = true;
+    // used for timeout (play/pause)
+    var play;
 
+    // TODO: this should be in another file ):<
     // toggle sound
     $('#sound').click(function(e) {
         e.preventDefault();
@@ -25,6 +28,12 @@ $(document).ready(function () {
         } else {
             $('#sound').text('Sound: On');
         }
+    });
+    // Play game on click
+    $('#play').click(function(e) {
+        e.preventDefault();
+        init();
+        $(this).hide();
     });
 
     // TODO
@@ -534,10 +543,13 @@ $(document).ready(function () {
         window.clearTimeout(play);
     }
 
-    // pattern from http://www.html5rocks.com/en/tutorials/canvas/notearsgame/
-    var FPS = 30;
-    var play = setInterval(function() {
-        update();
-        draw();
-    }, 1000 / FPS);
+    function init() {
+        // pattern from http://www.html5rocks.com/en/tutorials/canvas/notearsgame/
+        var FPS = 30;
+        play = setInterval(function() {
+            update();
+            draw();
+        }, 1000 / FPS);
+    }
+
 });
