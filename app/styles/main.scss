@@ -18,4 +18,55 @@
 }
 canvas {
     background: url('/images/starfield.png') 0 0 no-repeat #1a3450;
+    box-shadow: 0 0 5px white;
+}
+
+body {
+    background: #1a3450;
+    color: white;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    padding: 0;
+    margin: 0;
+}
+
+nav {
+    background: #333;
+
+    .container {
+        padding: 10px 0;
+    }   
+}
+
+a, a:visited, a:hover {
+    color: white;
+}
+
+.container {
+    width: 980px;
+    margin: auto;
+}
+
+.ui {
+    width: 300px;
+    float: right;
+
+    a {
+        display: block;
+        padding: 5px 0;
+    }
+
+    ul {
+        padding: 10px 0 0;
+        margin: 0;
+        list-style-type: none;
+    }
+
+    li {
+        padding: 5px 0;
+    }
+}
+
+#replay {
+    display: none;
 }

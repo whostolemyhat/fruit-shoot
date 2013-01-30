@@ -1,8 +1,9 @@
 $(document).ready(function () {
+    if(Modernizr.canvas) {
     var CANVAS_WIDTH = 600;
     var CANVAS_HEIGHT = 480;
 
-    $('<canvas id="canvas" width="' + CANVAS_WIDTH + '" height="' + CANVAS_HEIGHT + '"></canvas>').appendTo('body');
+    $('<canvas id="canvas" width="' + CANVAS_WIDTH + '" height="' + CANVAS_HEIGHT + '"></canvas>').appendTo('.main');
 
     var canvas = $('#canvas')[0];
     var ctx = canvas.getContext('2d');
@@ -18,6 +19,7 @@ $(document).ready(function () {
     // used for timeout (play/pause)
     var play;
 
+    // ------ UI --------- //
     // TODO: this should be in another file ):<
     // toggle sound
     $('#sound').click(function(e) {
@@ -35,6 +37,13 @@ $(document).ready(function () {
         init();
         $(this).hide();
     });
+
+    $('#replay').click(function(e) {
+        e.preventDefault();
+        location.reload();
+    });
+
+    // ----- end UI ---------- //
 
     // TODO
     function circle(x, y, radius, colour) {
@@ -123,8 +132,6 @@ $(document).ready(function () {
         sprite: Sprite('ship'),
 
         draw: function() {
-            // ctx.fillStyle = this.colour;
-            // ctx.fillRect(this.x, this.y, this.width, this.height);
             this.sprite.draw(ctx, this.x, this.y);
         },
         shoot: function() {
@@ -140,7 +147,7 @@ $(document).ready(function () {
             }
         },
         recharging: function() {
-            console.log('recharging!');
+            // console.log('recharging!');
         },
         midpoint: function() {
             return {
@@ -152,7 +159,7 @@ $(document).ready(function () {
             if(sound) {
                 Sound.play('explosion');
             }
-            $('body').append('Game Over! Score: ' + this.score);
+            $('.main').append('Game Over! Score: ' + this.score);
             end();
         },
         powerup: function(powerup) {
@@ -166,7 +173,7 @@ $(document).ready(function () {
             this.hp--;
             this.drawHealth();
             if(this.hp <= 0) {
-                $('body').append('You lose!');
+                $('.main').append('You lose!');
                 if(sound) {
                     Sound.play('explosion');
                 }
@@ -289,8 +296,6 @@ $(document).ready(function () {
         };
 
         E.draw = function() {
-            // ctx.fillStyle = E.colour;
-            // ctx.fillRect(this.x, this.y, this.width, this.height);
             this.sprite.draw(ctx, this.x, this.y);
         };
 
@@ -307,11 +312,6 @@ $(document).ready(function () {
 
         E.explode = function() {
             this.active = false;
-            // var text = "+10";
-            // ctx.fillStyle = E.colour;
-            // ctx.fillText(text, E.x, E.y);
-            // console.log(text);
-            // end();
         }
 
         return E;
@@ -359,10 +359,11 @@ $(document).ready(function () {
         },
         explode: function() {
             this.active = false;
+            player.score += 100;
             if(sound) {
                 Sound.play('explosion');
             }
-            $('body').append('You win!');
+            $('.main').append('You win!');
             end();
         },
         shoot: function() {
@@ -382,7 +383,6 @@ $(document).ready(function () {
         enemyProjectilePosition: function() {
             return {
                 x: this.x + this.width / 2,
-                // y: (Math.random() * this.height) + this.y
                 y: Math.random() * CANVAS_HEIGHT
             };
         }
@@ -407,8 +407,6 @@ $(document).ready(function () {
         };
 
         U.draw = function() {
-            // ctx.fillStyle = U.colour;
-            // ctx.fillRect(this.x, this.y, this.width, this.height);
             this.sprite.draw(ctx, this.x, this.y);
         };
 
@@ -421,6 +419,7 @@ $(document).ready(function () {
 
         U.collect = function() {
             this.active = false;
+            player.score += 5;
         };
 
         return U;
@@ -498,7 +497,7 @@ $(document).ready(function () {
         updateScore();
 
         if(state !== 'boss') {
-            if(count > 10) {
+            if(count > 100) {
                 state = 'boss';
                 boss.init();
             }
@@ -541,6 +540,7 @@ $(document).ready(function () {
 
     function end() {
         window.clearTimeout(play);
+        $('#replay').show();
     }
 
     function init() {
@@ -551,5 +551,7 @@ $(document).ready(function () {
             draw();
         }, 1000 / FPS);
     }
-
+} else {
+    $('.main').append("Your browser doesn't like fun!");
+}
 });
