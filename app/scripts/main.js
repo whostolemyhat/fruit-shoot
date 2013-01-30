@@ -159,7 +159,8 @@ $(document).ready(function () {
             if(sound) {
                 Sound.play('explosion');
             }
-            $('.main').append('Game Over! Score: ' + this.score);
+            showMessage('Game Over! Score: ' + this.score);
+            // $('.main').append('Game Over! Score: ' + this.score);
             end();
         },
         powerup: function(powerup) {
@@ -173,7 +174,8 @@ $(document).ready(function () {
             this.hp--;
             this.drawHealth();
             if(this.hp <= 0) {
-                $('.main').append('You lose!');
+                showMessage('You lose!');
+                // $('.main').append('You lose!');
                 if(sound) {
                     Sound.play('explosion');
                 }
@@ -194,7 +196,7 @@ $(document).ready(function () {
         active: false,
         x: player.x,
         y: player.y,
-        width: player.width,
+        width: player.width * 2,
         height: player.height * 2,
         radius: player.width - 10,
         colour: '#47e',
@@ -285,8 +287,8 @@ $(document).ready(function () {
         E.y = CANVAS_HEIGHT / 4 + Math.random() * CANVAS_HEIGHT / 2;
         E.xVelocity = 2;
         E.yVelocity = 0;
-        E.width = 20;
-        E.height = 20;
+        E.width = 28;
+        E.height = 28;
         E.points = 10;
         E.hp = 1;
         E.sprite = Sprite('alien-small');
@@ -358,12 +360,13 @@ $(document).ready(function () {
             }
         },
         explode: function() {
-            this.active = false;
+            // this.active = false;
             player.score += 100;
             if(sound) {
                 Sound.play('explosion');
             }
-            $('.main').append('You win!');
+            // $('.main').append('You win!');
+            showMessage('You win!');
             end();
         },
         shoot: function() {
@@ -540,7 +543,7 @@ $(document).ready(function () {
 
     function end() {
         window.clearTimeout(play);
-        $('#replay').show();
+        $('#replay').show().css({ display: 'block' });
     }
 
     function init() {
@@ -550,6 +553,10 @@ $(document).ready(function () {
             update();
             draw();
         }, 1000 / FPS);
+    }
+
+    function showMessage(text) {
+        $('.message').text(text).fadeIn();
     }
 } else {
     $('.main').append("Your browser doesn't like fun!");
